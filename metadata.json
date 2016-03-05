@@ -1,0 +1,7 @@
+{
+  "itemDisplayName": "Create an small lab environment with new AD forest",
+  "description": "This template creates a DC for new forest and domain, member server, workgroup server, networking and a Ubuntu server",
+  "summary": "Create DC for new forest and domain, member server, workgroup server, networking and a Ubuntu server",
+  "githubUsername": "anbengts",
+  "dateUpdated": "2016-03-05"
+}
