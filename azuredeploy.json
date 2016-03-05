@@ -95,6 +95,7 @@
         "sizeOfEachDataDiskInGB":  "40",
         "dataDisk1VhdName": "[concat('http://',variables('premierstorage01Name'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('WS-SRV01Name'),'dataDisk1.vhd')]",
         "dataDisk2VhdName": "[concat('http://',variables('premierstorage01Name'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('WS-SRV01Name'),'dataDisk2.vhd')]",
+        "02dataDisk1VhdName": "[concat('http://',variables('premierstorage01Name'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('WS-SRV04Name'),'dataDisk2.vhd')]",
         "WS-SRV04ImagePublisher": "MicrosoftWindowsServer",
         "WS-SRV04ImageOffer": "WindowsServer",
         "WS-SRV04OSDiskName": "WS-SRV04OSDisk",
