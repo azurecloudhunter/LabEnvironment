@@ -1,0 +1,631 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        
+    },
+
+    "variables": {
+
+        "PREMIER-WS-VNETPrefix": "10.0.0.0/16",
+        "PREMIER-WS-VNETSubnet1Name": "Subnet-1",
+        "PREMIER-WS-VNETSubnet1Prefix": "10.0.0.0/24",
+
+        "WS-SRV04Name": "WS-SRV04",
+        "WS-SRV04AdminUserName": "WorkshopAdmin",
+        "WS-SRV04AdminPassword": "P@ssw0rd4WS!",
+        "WS-SRV04WindowsOSVersion": "2012-R2-Datacenter",
+
+        "virtualNetworkName": "PREMIER-WS-VNET",
+
+        "DNSLocation":  "West Europe",
+
+        "WS-SRV03Name": "WS-SRV03",
+        "WS-SRV03AdminUserName": "WorkshopAdmin",
+        "WS-SRV03AdminPassword": "P@ssw0rd4WS!",
+        "WS-SRV03UbuntuOSVersion": "14.04.2-LTS",
+        "WS-SRV03-PUBIPDnsName": "[concat('nic3', uniqueString(subscription().id))]",
+
+        "ouPath": "CN=Computers,DC=workshop,DC=local",
+
+        "domainJoinOptions": "3",
+
+
+        "adNicIPAddress" : "10.0.0.4",
+
+        "adminPassword": "P@ssw0rd4WS!",
+        "adminUserName": "WorkshopAdmin",
+        "adConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
+        "domainName": "workshop.local",
+        "domainToJoin": "workshop.local",
+        "domainWhenJoin":  "workshop",
+        "adModulesURL": "[concat(variables('assetLocation'),'CreateADPDC.ps1.zip')]",
+        "assetLocation": "https://raw.githubusercontent.com/anbengts/azure-quickstart-templates/master/active-directory-new-domain/",
+
+        "WS-SRV01-PUBIPDnsName": "[concat('nic1', uniqueString(subscription().id))]",
+        "WS-SRV02-PUBIPDnsName": "[concat('nic2', uniqueString(subscription().id))]",
+
+        "premierstorage01Name": "[concat('store', uniqueString(subscription().id))]",
+        "premierstorage01Type": "Standard_LRS",
+
+        "WS-SRV01Name": "WS-SRV01",
+        "WS-SRV01AdminUserName": "WorkshopAdmin",
+        "WS-SRV01AdminPassword": "P@ssw0rd4WS!",
+        "WS-SRV01WindowsOSVersion": "2012-R2-Datacenter",
+
+        "WS-SRV02Name": "WS-SRV02",
+        "WS-SRV02AdminUserName": "WorkshopAdmin",
+        "WS-SRV02AdminPassword": "P@ssw0rd4WS!",
+        "WS-SRV02WindowsOSVersion": "2012-R2-Datacenter",
+
+
+        "WS-SRV01ImagePublisher": "MicrosoftWindowsServer",
+        "WS-SRV01ImageOffer": "WindowsServer",
+        "WS-SRV01OSDiskName": "WS-SRV01OSDisk",
+        "WS-SRV01VmSize": "Standard_D1",
+        "WS-SRV01VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'PREMIER-WS-VNET')]",
+        "WS-SRV01SubnetRef": "[concat(variables('WS-SRV01VnetID'), '/subnets/', variables('PREMIER-WS-VNETSubnet1Name'))]",
+        "WS-SRV01StorageAccountContainerName": "vhds",
+        "WS-SRV01NicName": "[concat(variables('WS-SRV01Name'), 'NetworkInterface')]",
+        "WS-SRV02ImagePublisher": "MicrosoftWindowsServer",
+        "WS-SRV02ImageOffer": "WindowsServer",
+        "WS-SRV02OSDiskName": "WS-SRV02OSDisk",
+        "WS-SRV02VmSize": "Standard_D1",
+        "WS-SRV02VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'PREMIER-WS-VNET')]",
+        "WS-SRV02SubnetRef": "[concat(variables('WS-SRV02VnetID'), '/subnets/', variables('PREMIER-WS-VNETSubnet1Name'))]",
+        "WS-SRV02StorageAccountContainerName": "vhds",
+        "WS-SRV02NicName": "[concat(variables('WS-SRV02Name'), 'NetworkInterface')]",
+        "WS-SRV01-PUBIPName": "WS-SRV01-PUBIP",
+        "WS-SRV02-PUBIPName": "WS-SRV02-PUBIP",
+        "WS-SRV03ImagePublisher": "Canonical",
+        "WS-SRV03ImageOffer": "UbuntuServer",
+        "WS-SRV03OSDiskName": "WS-SRV03OSDisk",
+        "WS-SRV03VmSize": "Standard_D1",
+        "WS-SRV03VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'PREMIER-WS-VNET')]",
+        "WS-SRV03SubnetRef": "[concat(variables('WS-SRV03VnetID'), '/subnets/', variables('PREMIER-WS-VNETSubnet1Name'))]",
+        "WS-SRV03StorageAccountContainerName": "vhds",
+        "WS-SRV03NicName": "[concat(variables('WS-SRV03Name'), 'NetworkInterface')]",
+        "WS-SRV03-PUBIPName": "WS-SRV03-PUBIP",
+        "DeployADConfigurationFunction": "DeployADConfiguration.ps1\\Main",
+        "CreateADForestConfigurationFunction": "CreateADForestConfiguration.ps1\\Main",
+        "vmStorageAccountContainerName": "vhds",
+         "vnetwithDNSTemplateUri": "[concat(variables('assetLocation'),'vnet-with-dns-server.json')]",
+        "sizeOfEachDataDiskInGB":  "40",
+        "dataDisk1VhdName": "[concat('http://',variables('premierstorage01Name'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('WS-SRV01Name'),'dataDisk1.vhd')]",
+        "dataDisk2VhdName": "[concat('http://',variables('premierstorage01Name'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('WS-SRV01Name'),'dataDisk2.vhd')]",
+        "WS-SRV04ImagePublisher": "MicrosoftWindowsServer",
+        "WS-SRV04ImageOffer": "WindowsServer",
+        "WS-SRV04OSDiskName": "WS-SRV04OSDisk",
+        "WS-SRV04VmSize": "Standard_D1",
+        "WS-SRV04VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'PREMIER-WS-VNET')]",
+        "WS-SRV04SubnetRef": "[concat(variables('WS-SRV04VnetID'), '/subnets/', variables('PREMIER-WS-VNETSubnet1Name'))]",
+        "WS-SRV04StorageAccountContainerName": "vhds",
+        "WS-SRV04NicName": "[concat(variables('WS-SRV04Name'), 'NetworkInterface')]"
+
+    },
+    "resources": [
+        {
+            "name": "PREMIER-WS-VNET",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "resources": [ ],
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "PREMIER-WS-VNET"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('PREMIER-WS-VNETPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('PREMIER-WS-VNETSubnet1Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('PREMIER-WS-VNETSubnet1Prefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('premierstorage01Name')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "premierstorage01"
+            },
+            "properties": {
+                "accountType": "[variables('premierstorage01Type')]"
+            }
+        },
+        {
+            "name": "[variables('WS-SRV01NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'PREMIER-WS-VNET')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('WS-SRV01-PUBIPName'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV01Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[variables('adNicIPAddress')]",
+                            "subnet": {
+                                "id": "[variables('WS-SRV01SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('WS-SRV01-PUBIPName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('WS-SRV01Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('premierstorage01Name'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('WS-SRV01NicName'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV01"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('WS-SRV01VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('WS-SRV01Name')]",
+                    "adminUsername": "[variables('WS-SRV01AdminUsername')]",
+                    "adminPassword": "[variables('WS-SRV01AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('WS-SRV01ImagePublisher')]",
+                        "offer": "[variables('WS-SRV01ImageOffer')]",
+                        "sku": "[variables('WS-SRV01WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "datadisk1",
+                            "diskSizeGB": "[variables('sizeOfEachDataDiskInGB')]",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk1VhdName')]"
+                            },
+                            "createOption": "Empty"
+
+                        },
+
+                        {
+                            "name": "datadisk2",
+                            "diskSizeGB": "[variables('sizeOfEachDataDiskInGB')]",
+                            "lun": 1,
+                            "vhd": {
+                                "Uri": "[variables('dataDisk2VhdName')]"
+                            },
+                            "createOption": "Empty"
+
+                        }
+
+
+                    ],
+                    "osDisk": {
+                        "name": "WS-SRV01OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('premierstorage01Name'), '.blob.core.windows.net/', variables('WS-SRV01StorageAccountContainerName'), '/', variables('WS-SRV01OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WS-SRV01NicName'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "name": "CreateADForest",
+                    "type": "extensions",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-06-15",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV01Name'))]"
+                    ],
+                    "tags": {
+                        "displayName": "CreateADForest"
+                    },
+                    "properties": {
+                        "publisher": "Microsoft.Powershell",
+                        "type": "DSC",
+                        "typeHandlerVersion": "2.9",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "modulesUrl": "[variables('adModulesURL')]",
+                            "configurationFunction": "[variables('adConfigurationFunction')]",
+                            "properties": {
+                                "DomainName": "[variables('domainName')]",
+                                "AdminCreds": {
+                                    "UserName": "[variables('adminUserName')]",
+                                    "Password": "PrivateSettingsRef:AdminPassword"
+                                }
+                            }
+                        },
+                        "protectedSettings": {
+                            "Items": {
+                                "AdminPassword": "[variables('adminPassword')]"
+                            }
+                        }
+                    }
+                }
+
+
+
+            ]
+        },
+        {
+            "name": "[variables('WS-SRV02NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'PREMIER-WS-VNET')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('WS-SRV02-PUBIPName'))]",
+                "[concat('Microsoft.Resources/deployments/', 'UpdateVNetDNS')]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV02Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WS-SRV02SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('WS-SRV02-PUBIPName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('WS-SRV02Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('premierstorage01Name'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('WS-SRV02NicName'))]",
+                "[concat('Microsoft.Resources/deployments/', 'UpdateVNetDNS')]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV02"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('WS-SRV02VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('WS-SRV02Name')]",
+                    "adminUsername": "[variables('WS-SRV02AdminUsername')]",
+                    "adminPassword": "[variables('WS-SRV02AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('WS-SRV02ImagePublisher')]",
+                        "offer": "[variables('WS-SRV02ImageOffer')]",
+                        "sku": "[variables('WS-SRV02WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "WS-SRV02OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('premierstorage01Name'), '.blob.core.windows.net/', variables('WS-SRV02StorageAccountContainerName'), '/', variables('WS-SRV02OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WS-SRV02NicName'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('WS-SRV01-PUBIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "WS-SRV01-PUBIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('WS-SRV01-PUBIPDnsName')]"
+                }
+            }
+        },
+        {
+            "name": "[variables('WS-SRV02-PUBIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "WS-SRV02-PUBIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('WS-SRV02-PUBIPDnsName')]"
+                }
+            }
+        },
+        {
+            "name": "[variables('WS-SRV03NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'PREMIER-WS-VNET')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('WS-SRV03-PUBIPName'))]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV02Name'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV03Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WS-SRV03SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('WS-SRV03-PUBIPName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('WS-SRV03Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('premierstorage01Name'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('WS-SRV03NicName'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV03"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('WS-SRV03VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('WS-SRV03Name')]",
+                    "adminUsername": "[variables('WS-SRV03AdminUsername')]",
+                    "adminPassword": "[variables('WS-SRV03AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('WS-SRV03ImagePublisher')]",
+                        "offer": "[variables('WS-SRV03ImageOffer')]",
+                        "sku": "[variables('WS-SRV03UbuntuOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "WS-SRV03OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('premierstorage01Name'), '.blob.core.windows.net/', variables('WS-SRV03StorageAccountContainerName'), '/', variables('WS-SRV03OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WS-SRV03NicName'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('WS-SRV03-PUBIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "WS-SRV03-PUBIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('WS-SRV03-PUBIPDnsName')]"
+                }
+            }
+        },
+
+
+        {
+            "name": "UpdateVNetDNS",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2015-01-01",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV01Name'),'/extensions/CreateADForest')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('vnetwithDNSTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[variables('DNSLocation')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[variables('virtualNetworkName')]"
+                    },
+                    "virtualNetworkAddressRange": {
+                        "value": "[variables('PREMIER-WS-VNETPrefix')]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('PREMIER-WS-VNETSubnet1Name')]"
+                    },
+                    "subnetRange": {
+                        "value": "[variables('PREMIER-WS-VNETSubnet1Prefix')]"
+                    },
+                    "DNSServerAddress": {
+                        "value": [
+                            "[variables('adNicIPAddress')]"
+                        ]
+                    }
+                }
+            }
+        },  
+
+
+        {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('WS-SRV02Name'),'/joindomain')]",
+      "location": "[variables('DNSLocation')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV02Name'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "Name": "[variables('domainToJoin')]",
+          "User": "[concat(variables('domainToJoin'), '\\', variables('adminUserName'))]",
+          "Restart": "true",
+          "Options": "[variables('domainJoinOptions')]"
+        },
+        "protectedsettings": {
+          "Password": "[variables('adminPassword')]"
+        }
+      }
+    },
+        {
+            "name": "[variables('WS-SRV04NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'PREMIER-WS-VNET')]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV01Name'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV04Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WS-SRV04SubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('WS-SRV04Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('premierstorage01Name'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('WS-SRV04NicName'))]"
+            ],
+            "tags": {
+                "displayName": "WS-SRV04"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('WS-SRV04VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('WS-SRV04Name')]",
+                    "adminUsername": "[variables('WS-SRV04AdminUsername')]",
+                    "adminPassword": "[variables('WS-SRV04AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('WS-SRV04ImagePublisher')]",
+                        "offer": "[variables('WS-SRV04ImageOffer')]",
+                        "sku": "[variables('WS-SRV04WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "WS-SRV04OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('premierstorage01Name'), '.blob.core.windows.net/', variables('WS-SRV04StorageAccountContainerName'), '/', variables('WS-SRV04OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WS-SRV04NicName'))]"
+                        }
+                    ]
+                }
+            }
+        }
+
+
+
+
+    ],
+
+        "outputs": {
+        }
+    }
