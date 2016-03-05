@@ -2,6 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "WS-SRV04-PUBIPDnsName": {
+            "type": "string",
+            "minLength": 1
+        }
         
     },
 
@@ -25,6 +29,7 @@
         "WS-SRV03AdminPassword": "P@ssw0rd4WS!",
         "WS-SRV03UbuntuOSVersion": "14.04.2-LTS",
         "WS-SRV03-PUBIPDnsName": "[concat('nic3', uniqueString(subscription().id))]",
+        "WS-SRV04-PUBIPDnsName": "[concat('nic4', uniqueString(subscription().id))]",
 
         "ouPath": "CN=Computers,DC=workshop,DC=local",
 
@@ -100,7 +105,8 @@
         "WS-SRV04VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'PREMIER-WS-VNET')]",
         "WS-SRV04SubnetRef": "[concat(variables('WS-SRV04VnetID'), '/subnets/', variables('PREMIER-WS-VNETSubnet1Name'))]",
         "WS-SRV04StorageAccountContainerName": "vhds",
-        "WS-SRV04NicName": "[concat(variables('WS-SRV04Name'), 'NetworkInterface')]"
+        "WS-SRV04NicName": "[concat(variables('WS-SRV04Name'), 'NetworkInterface')]",
+        "WS-SRV04-PUBIPName": "WS-SRV04-PUBIP"
 
     },
     "resources": [
@@ -342,6 +348,20 @@
                         "sku": "[variables('WS-SRV02WindowsOSVersion')]",
                         "version": "latest"
                     },
+                    "dataDisks": [
+                        {
+                            "name": "02datadisk1",
+                            "diskSizeGB": "[variables('sizeOfEachDataDiskInGB')]",
+                            "lun": 0,
+                            "vhd": {
+                                "Uri": "[variables('02dataDisk1VhdName')]"
+                            },
+                            "createOption": "Empty"
+
+                        }
+
+                    ],
+
                     "osDisk": {
                         "name": "WS-SRV02OSDisk",
                         "vhd": {
@@ -555,7 +575,8 @@
             "apiVersion": "2015-06-15",
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', 'PREMIER-WS-VNET')]",
-                "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV01Name'))]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('WS-SRV01Name'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('WS-SRV04-PUBIPName'))]"
             ],
             "tags": {
                 "displayName": "WS-SRV04Nic"
@@ -568,6 +589,9 @@
                             "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[variables('WS-SRV04SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('WS-SRV04-PUBIPName'))]"
                             }
                         }
                     }
@@ -617,6 +641,22 @@
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WS-SRV04NicName'))]"
                         }
                     ]
+                }
+            }
+        },
+        {
+            "name": "[variables('WS-SRV04-PUBIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "WS-SRV04-PUBIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('WS-SRV04-PUBIPDNSName')]"
                 }
             }
         }
