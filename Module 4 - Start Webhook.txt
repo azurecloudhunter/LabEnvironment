@@ -1,0 +1,8 @@
+$uri = "https://s2events.azure-automation.net/webhooks?token=oLknLhANSZLJLRtfDKjjiE%3d"
+$headers = @{"From"="student@contoso.com";"Date"="05/28/2015 15:47:00"}
+
+$message  = @([pscustomobject]@{MessageOne="Premier Workshop";MessageTwo="Hello World"})
+$body = ConvertTo-Json -InputObject $vms 
+
+$response = Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body
+# $jobid = ConvertFrom-Json $response 

@@ -1,0 +1,17 @@
+Configuration StandardServer
+{
+   # A Configuration block can have zero or more Node blocks
+   Node ("localhost")
+   {
+      # Next, specify one or more resource blocks
+
+      # File is a built-in resource you can use to manage files and directories
+      # This example ensures files from the source directory are present in the destination directory
+      File MyFileExample
+      {
+         Ensure = "Present"  # You can also set Ensure to "Absent"
+         Type = "Directory" # Default is “File”
+         DestinationPath = 'C:\CONTOSO001'
+      }
+   }
+} 
